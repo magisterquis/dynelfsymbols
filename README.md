@@ -34,8 +34,8 @@ A slightly less brief theory of what's going on can be found in
 
 Tool
 ----
-In this repository is the source for [`dynelfsymbols`](./src).  Please run it
-with `-h` for basic usage instructions.
+In this repository is the source for [`dynelfsymbols`](./dynelfsymbols).
+Please run it with `-h` for basic usage instructions.
 
 Libraries
 ---------
