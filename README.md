@@ -7,17 +7,17 @@ easier than it has been in the past.
 
 This should enable post-exploitation persistence with an increased burden on
 whichever poor soul has to figure out why a normal binary is doing strange
-things.
+things.  You always give someone a shell when you call `find(1)`, right?
 
 In a nutshell, a legitimate binary is edited to point to a malicious shared
 object file, which in turn loads the legitimate shared object file.
 
-This has been tested on x86_64 Linux, but in theory should work on other
+This has been tested on Linux x86_64, but in theory should work on other
 architectures, as well as the BSDs.
 
 For a quick start, please see [QUICKSTART](QUICKSTART.md).
 
-For leagal use only.
+For legal use only.
 
 Brief Theory
 ------------
@@ -34,7 +34,7 @@ A slightly less brief theory of what's going on can be found in
 
 Tool
 ----
-In this repository is the source for `[dynelfsymbols](./src)`.  Please run it
+In this repository is the source for [`dynelfsymbols`](./src).  Please run it
 with `-h` for basic usage instructions.
 
 Libraries

@@ -25,10 +25,10 @@ $ ldd /usr/bin/uptime
         libgpg-error.so.0 => /lib/x86_64-linux-gnu/libgpg-error.so.0 (0x00007f3c02c07000)
 ```
 
-In this case, `uptime(1)` is loading several libraries.  In reality, uptime(1)
-itself is only loading a couple of them, and those load others, which may load
-others, and so on.  Here we can see the name of the libraries (e.g.
-`libprocps.so.4`) and the file on disk where each library is found (e.g.
+In this case, `uptime(1)` is loading several libraries.  In reality,
+`uptime(1)` itself is only loading a couple of them, and those load others,
+which may load others, and so on.  Here we can see the name of the libraries
+(e.g.  `libprocps.so.4`) and the file on disk where each library is found (e.g.
 `/lib/x86_64-linux-gnu/libprocps.so.4`).
 
 Linking, Maliciously
@@ -39,21 +39,27 @@ change the name of the which the linker will try to load at runtime.
 From:
 ```plaintext
 ...snip...
-^@^@^@^@^@^@^@^@^@^@^@^@^@libprocps.so.4^@_ITM_deregisterTMCloneTable^@__gmon_start__^@_Jv_RegisterClasses^@_ITM_registerTMCloneTable^@print_uptime^@libc.so.6^@__printf_chk^@setlocale^@dcgettext^@__stack_chk_fail^@_exit^@program_invocation_name^@__errno_location^@__fprintf_chk^@stdout^@fputs^@fclose^@stderr^@getopt_long^@gettimeofday^@__fpending^@localtime^@program_invocation_short_name^@bindtextdomain^@__libc_start_main^@ferror^@__progname^@__progname_full^@__cxa_atexit^@_init^@_fini^@_edata^@__bss_start^@_end^@LIBPROCPS_0^@GLIBC_2.3.4^@GLIBC_2.4^@GLIBC_2.2.5^@^@^@^B^@^B^@^@^@^B^@^B^@^B^@^B^@^B^@^B^@^C^@^B^@^D^@^B^@^B^@^B^@^C^@^B^@^@^@^B^@^E^@^B^@^@^@^B^@^B^@^E^@^@^@^B^@^A
+^@^@^@^@^@^@^@^@^@^@^@^@^@libprocps.so.4^@_ITM_deregisterTMCloneTable^@__gmon_s
+tart__^@_Jv_RegisterClasses^@_ITM_registerTMCloneTable^@print_uptime^@libc.so.6
+^@__printf_chk^@setlocale^@dcgettext^@__stack_chk_fail^@_exit^@program_invocati
+on_name^@__errno_location^@__fprintf_chk^@stdout^@fputs^@fclose^@stderr^@getopt
 ...snip...
 ```
 
 To:
 ```plaintext
 ...snip...
-^@^@^@^@^@^@^@^@^@^@^@^@^@libkitten.so.4^@_ITM_deregisterTMCloneTable^@__gmon_start__^@_Jv_RegisterClasses^@_ITM_registerTMCloneTable^@print_uptime^@libc.so.6^@__printf_chk^@setlocale^@dcgettext^@__stack_chk_fail^@_exit^@program_invocation_name^@__errno_location^@__fprintf_chk^@stdout^@fputs^@fclose^@stderr^@getopt_long^@gettimeofday^@__fpending^@localtime^@program_invocation_short_name^@bindtextdomain^@__libc_start_main^@ferror^@__progname^@__progname_full^@__cxa_atexit^@_init^@_fini^@_edata^@__bss_start^@_end^@LIBPROCPS_0^@GLIBC_2.3.4^@GLIBC_2.4^@GLIBC_2.2.5^@^@^@^B^@^B^@^@^@^B^@^B^@^B^@^B^@^B^@^B^@^C^@^B^@^D^@^B^@^B^@^B^@^C^@^B^@^@^@^B^@^E^@^B^@^@^@^B^@^B^@^E^@^@^@^B^@^A
+^@^@^@^@^@^@^@^@^@^@^@^@^@libkitten.so.4^@_ITM_deregisterTMCloneTable^@__gmon_s
+tart__^@_Jv_RegisterClasses^@_ITM_registerTMCloneTable^@print_uptime^@libc.so.6
+^@__printf_chk^@setlocale^@dcgettext^@__stack_chk_fail^@_exit^@program_invocati
+on_name^@__errno_location^@__fprintf_chk^@stdout^@fputs^@fclose^@stderr^@getopt
 ...snip...
 ```
 
 Fortunately, the string "`libprocps.so.4`" only appeared once in the entire
 file.  In general, though, it'll be near the top of the file and near a bunch
 of function names.  In this example, "`libprocps.so.4`" was changed to
-"`libkitten.so.4`".  `ldd(1)` now looks for libkitten instead of libprocps.
+"`libkitten.so.4`".  `ldd(1)` now looks for `libkitten` instead of `libprocps`.
 ```bash
 $ ldd /usr/bin/uptime
         linux-vdso.so.1 =>  (0x00007fff17f53000)
@@ -62,9 +68,9 @@ $ ldd /usr/bin/uptime
         /lib64/ld-linux-x86-64.so.2 (0x00007f8dfade1000)
 ```
 
-The linker is now looking for libkitten, and, not unreasonably, can't find it.
-Also of note, the other libraries are missing, due to them having previously
-been required by libprocps.
+The linker is now looking for `libkitten`, and, not unreasonably, can't find
+it.  Also of note, the other libraries are now absent, due to them having
+previously been required by `libprocps`.
 
 Malicious libraries
 -------------------
@@ -90,16 +96,17 @@ open("/usr/lib/tls/libkitten.so.4", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such fil
 open("/usr/lib/x86_64/libkitten.so.4", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
 open("/usr/lib/libkitten.so.4", O_RDONLY|O_CLOEXEC) = -1 ENOENT (No such file or directory)
 ```
-If we make, say, `/lib/libkitten.so.4`, it will be loaded instead of the
-original `libprocps.so.4`.  The linker still expects to find the symbols that
-would have been imported from libprocps, but that's easy enough to work out.
+If we make a file named, say, `/lib/libkitten.so.4`, the linker will attempt to
+load it instead of the original `libprocps.so.4`.  The linker will give an
+error as it still expects to find the symbols that would have been imported
+from `libprocps`, but that's easy enough to work out.
 
-The functions (and required associated library versions) can be found with
+Those functions (and required associated library versions) can be found with
 `objdump(1)` or with the program in this repository.  A malicious
-`libkitten.so.4` can then be crafted to load `libprocps.so.4` (via `dlopen(3)`)
-export proxy functions which call libprocps' functions and additionally perform
-other malicious tasks.  The end result is a reverse shell every time someone
-calls `uptime(1)`.
+`libkitten.so.4` can then be crafted to load `libprocps.so.4` (via
+`dlopen(3)`), export proxy functions which call libprocps' functions and
+additionally perform other malicious tasks.  The end result is a reverse shell
+every time someone calls `uptime(1)`.
 
 Do it!
 ------

